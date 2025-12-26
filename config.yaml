@@ -1,0 +1,8 @@
+# config.yaml
+run_id: "experiment_name"
+model_name: "gemini-2.0-flash"
+interactive: false
+max_refinement_rounds: 2
+auto_debug: false
+debug_attempts: 2
+preserve_artifacts: true

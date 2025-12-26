@@ -1,0 +1,21 @@
+.vscode/
+.idea/
+__pycache__/
+.venv/
+runs/
+data/
+logs/
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+
+# API Key files
+gemini_api_key.txt
+
+# uv
+.uv/
+*.egg-info/
+dist/
+build/
