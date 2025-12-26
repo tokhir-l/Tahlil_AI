@@ -172,6 +172,8 @@ PACKAGE_MAPPINGS = {
     'gspread': 'gspread',
     'google-auth': 'google.auth',
     'google-api-python-client': 'googleapiclient',
+    'pyarrow': 'pyarrow',
+    'xlrd': 'xlrd',
 }
 
 

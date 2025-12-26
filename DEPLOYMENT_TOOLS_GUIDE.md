@@ -64,27 +64,6 @@ pymysql>=1.1.0                 # MySQL (uncomment if needed)
 
 ---
 
-### ⚠️ **External Software (Manual Installation Required)**
-
-These **cannot be auto-installed** and must be installed on the server separately:
-
-#### **1. R (for R Integration)**
-- **Download:** https://www.r-project.org/
-- **Installation:** Follow OS-specific instructions
-- **Verification:** `R --version` should work
-- **Size:** ~200-300 MB
-- **License:** Free (GPL)
-
-#### **2. Julia (for Julia Integration)**
-- **Download:** https://julialang.org/downloads/
-- **Installation:** Extract and add to PATH
-- **Verification:** `julia --version` should work
-- **Size:** ~200-500 MB
-- **License:** Free (MIT)
-
-
----
-
 ## 🌐 Making the Platform Available Online
 
 ### **Option 1: Cloud VPS (Recommended for Production)**
@@ -134,8 +113,6 @@ tar -xzf julia-1.9.3-linux-x86_64.tar.gz
 mv julia-1.9.3 /opt/julia
 ln -s /opt/julia/bin/julia /usr/local/bin/julia
 
-# Install MATLAB (if using - requires license)
-# Follow MATLAB installation guide for Linux
 ```
 
 #### **Step 4: Deploy Application**
@@ -395,7 +372,7 @@ pip install torch transformers spacy langchain
 python -m spacy download en_core_web_sm
 
 # Pre-install all tool packages
-pip install statsmodels sqlalchemy gspread rpy2 julia splunk-sdk saspy pyreadstat
+pip install statsmodels sqlalchemy gspread rpy2 julia pyreadstat
 ```
 
 ### **Create Startup Script**

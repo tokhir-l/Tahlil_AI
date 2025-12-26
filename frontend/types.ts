@@ -61,7 +61,7 @@ export interface StepDetails {
 
 export type Theme = 'light' | 'dark' | 'system';
 
-export type ModelId = 'gemini-2.5-flash' | 'gemini-2.0-flash' | 'gemini-3-pro-preview';
+export type ModelId = 'gemini-1.5-flash' | 'gemini-1.5-pro' | 'gemini-2.0-flash-exp';
 
 export interface AppState {
   currentChatId: string | null;
@@ -105,4 +105,17 @@ export interface User {
   email: string;
   username: string;
   avatar?: string;
+}
+
+export interface Dashboard {
+  id: string;
+  title: string;
+  date: string;
+  run_id: string;
+  file_url: string;
+}
+
+export interface DashboardListResponse {
+  success: boolean;
+  dashboards: Dashboard[];
 }

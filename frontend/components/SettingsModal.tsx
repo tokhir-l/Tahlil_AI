@@ -26,7 +26,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
             <X size={20} />
           </button>
         </div>
-        
+
         <div className="p-6 space-y-6">
           {/* Theme Section */}
           <div className="space-y-3">
@@ -65,13 +65,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 onChange={(e) => onModelChange(e.target.value as ModelId)}
                 className="w-full appearance-none bg-background border border-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
               >
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommended)</option>
-                <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                <option value="gemini-3-pro-preview">Gemini 3 Pro</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Recommended)</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Exp</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 9l6 6 6-6"/>
+                  <path d="M6 9l6 6 6-6" />
                 </svg>
               </div>
             </div>
@@ -84,18 +84,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Account Section */}
           <div className="space-y-3">
-             <button 
-               onClick={onLogout}
-               className="w-full flex items-center justify-between px-4 py-3 text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 rounded-lg transition-colors"
-             >
-                <span className="font-medium">Sign Out</span>
-                <LogOut size={18} />
-             </button>
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center justify-between px-4 py-3 text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/20 rounded-lg transition-colors"
+            >
+              <span className="font-medium">Sign Out</span>
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
-        
+
         <div className="bg-secondary/30 px-6 py-4 border-t border-border flex justify-end">
-          <button 
+          <button
             onClick={onClose}
             className="px-4 py-2 bg-foreground text-background rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
           >

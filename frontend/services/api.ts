@@ -13,10 +13,10 @@ export const api = {
    */
   uploadFiles: async (files: FileAttachment[]): Promise<string[]> => {
     const fileIds: string[] = [];
-    
+
     for (const fileObj of files) {
       if (!fileObj.file) continue;
-      
+
       const formData = new FormData();
       formData.append('file', fileObj.file);
       formData.append('user_id', 'default'); // TODO: Implement user sessions
@@ -28,7 +28,7 @@ export const api = {
         });
 
         if (!response.ok) throw new Error(`Upload failed for ${fileObj.name}`);
-        
+
         const data = await response.json();
         if (data.success && data.file?.id) {
           fileIds.push(data.file.id);
@@ -40,7 +40,7 @@ export const api = {
         throw error;
       }
     }
-    
+
     return fileIds;
   },
 
@@ -64,7 +64,7 @@ export const api = {
       if (!data.success || !data.run_id) {
         throw new Error(data.error || 'Failed to start analysis');
       }
-      
+
       return data.run_id;
     } catch (error) {
       console.error('Start run error:', error);
@@ -145,7 +145,7 @@ export const api = {
   getStorageStats: async (): Promise<StorageStats> => {
     // In a real app, fetch from backend: GET /api/storage/stats
     // return (await fetch(`${API_BASE}/storage/stats`)).json();
-    
+
     return new Promise(resolve => {
       setTimeout(() => {
         resolve({
@@ -200,5 +200,19 @@ export const api = {
    */
   getFileUrl: (runId: string, filename: string) => {
     return `${API_BASE}/run/${runId}/file/${encodeURIComponent(filename)}`;
+  },
+
+  /**
+   * Get list of generated dashboards
+   */
+  getDashboards: async (): Promise<import('../types').Dashboard[]> => {
+    try {
+      const response = await fetch(`${API_BASE}/dashboards/list`);
+      const data = await response.json();
+      return data.dashboards || [];
+    } catch (e) {
+      console.error('Error fetching dashboards:', e);
+      return [];
+    }
   }
 };

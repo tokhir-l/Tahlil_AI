@@ -1,10 +1,8 @@
 # Tahlil: A Data Science Agentic Framework
 
-Tahlil (Data Science - Structured Thought and Action) is a Python-based agentic framework for automating data science tasks. It leverages a multi-agent system powered by Google's Gemini models to analyze data, devise a plan, write and execute code, and iteratively refine the solution to answer a user's query.
+Tahlil is a Python-based agentic framework for automating data science tasks. It leverages a multi-agent system to analyze data, devise a plan, write and execute code, and iteratively refine the solution to answer a user's query.
 
-This project is inspired by the paper from Google Research: [DS-STAR: A State-of-the-Art Versatile Data Science Agent](https://research.google/blog/ds-star-a-state-of-the-art-versatile-data-science-agent/). [Paper](https://arxiv.org/pdf/2509.21825)
-
-## Features
+# Features
 
 - **Agentic Workflow**: Implements a pipeline of specialized AI agents (Analyzer, Planner, Coder, Verifier, Router, Debugger, Finalizer) that collaborate to solve data science problems.
 - **Reproducibility**: Every step of the pipeline is saved, including prompts, generated code, execution results, and metadata. This allows for complete auditability and reproducibility of results.
@@ -34,29 +32,7 @@ The Tahlil pipeline is composed of several phases and agents:
 
 All artifacts for each run are stored in the `runs/` directory, organized by `run_id`.
 
-## Project Structure
-
-```
-/
-├─── tahlil.py               # Main script containing the agent logic and CLI
-├─── config.yaml             # Main configuration file
-├─── prompt.yaml             # Prompts for the different AI agents
-├─── pyproject.toml          # Project metadata and dependencies (uv format)
-├─── uv.lock                 # Locked dependency versions for reproducibility
-├─── .python-version         # Python version specification for uv
-├─── data/                   # Directory for your data files
-└─── runs/                   # Directory where all experiment runs and artifacts are stored
-```
-
 ## Getting Started
-
-### Prerequisites
-
-- Python 3.11+
-- An API key for Google's Gemini models.
-- [uv](https://docs.astral.sh/uv/) package manager (recommended)
-
-### Installation
 
 #### Using uv (Recommended)
 

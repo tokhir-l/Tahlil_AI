@@ -976,6 +976,35 @@ def get_run_file(run_id, filename):
         logger.error(f"Error serving file: {e}")
         return jsonify({'error': str(e), 'success': False}), 400
 
+@app.route('/api/dashboards/list', methods=['GET'])
+def list_dashboards():
+    """List all generated dashboards."""
+    try:
+        dashboards = []
+        if RUNS_DIR.exists():
+            for run_dir in sorted(RUNS_DIR.iterdir(), reverse=True):
+                if run_dir.is_dir():
+                    dashboard_file = run_dir / 'final_output' / 'dashboard.html'
+                    if dashboard_file.exists():
+                        metadata = {}
+                        metadata_file = run_dir / 'metadata.json'
+                        if metadata_file.exists():
+                            with open(metadata_file, 'r') as f:
+                                metadata = json.load(f)
+                        
+                        dashboards.append({
+                            'id': run_dir.name,
+                            'title': metadata.get('user_query', f'Dashboard {run_dir.name[:8]}'),
+                            'date': metadata.get('timestamp', datetime.fromtimestamp(dashboard_file.stat().st_mtime).isoformat()),
+                            'run_id': run_dir.name,
+                            'file_url': f'/api/run/{run_dir.name}/file/dashboard.html'
+                        })
+        
+        return jsonify({'success': True, 'dashboards': dashboards})
+    except Exception as e:
+        logger.error(f"Error listing dashboards: {e}")
+        return jsonify({'error': str(e), 'success': False}), 400
+
 # =============================================================================
 # CONFIGURATION ENDPOINTS
 # =============================================================================
@@ -985,9 +1014,9 @@ def get_available_models():
     """Get list of available models."""
     models = {
         'gemini': [
-            'gemini-2.5-flash',
-            'gemini-2.0-flash',
+            'gemini-1.5-flash',
             'gemini-1.5-pro',
+            'gemini-2.0-flash-exp',
         ],
         'openai': [
             'gpt-4',

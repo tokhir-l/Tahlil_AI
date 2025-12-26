@@ -204,6 +204,13 @@ preserve_artifacts: true           # Keep all analysis artifacts
 - Use the "Cancel" button in the web UI
 - Or restart the server: `Ctrl+C` then `python app.py`
 
+### Issue: Changes not reflected after editing backend
+
+**Solution:** Restart Flask to apply code changes.
+1. Press `Ctrl+C` in the terminal where Flask is running
+2. Run `python app.py` again
+3. Clear browser cache with `Ctrl+Shift+R`
+
 ## 📁 Project Structure
 
 ```

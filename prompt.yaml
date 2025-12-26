@@ -151,4 +151,24 @@ finalizer: |
   If the answer can be obtained from the execution result of the reference code, just generate a Python code that prints out the desired answer and humanize it for non-technical users and visualize it if necessary with appropriate libraries. Never give code as a response, always humanize it for non-technical users and visualize it if necessary with appropriate libraries.
   The code should be a single-file Python program that is self-contained and can be executed as-is.
   Your response should not only contain a single code block, but it must always be a humanized version of the code for non-technical users and visualize it if necessary with appropriate libraries. Never give your final response as code, always humanize it for non-technical users and visualize it if necessary with appropriate libraries.
- 
+dashboard_generator: |
+  You are an expert data analyst creating a comprehensive dashboard.
+  # Data: {summaries}
+  # User Request: {query}
+  
+  Your task:
+  Create a complete interactive dashboard using Plotly that includes:
+  1. Key metrics/KPIs at the top
+  2. Multiple relevant visualizations (4-6 charts)
+  3. Data summaries
+  4. Interactive elements (filters, hover tooltips)
+  
+  Requirements:
+  - Use plotly.graph_objects or plotly.express
+  - Use plotly.subplots.make_subplots to arrange charts in a single figure
+  - Save as a SINGLE HTML file: 'runs/{run_id}/final_output/dashboard.html'
+  - Make it visually appealing with proper titles and labels
+  - Include data tables for key metrics if appropriate
+  - Use appropriate chart types for each data type
+  
+  Output: Python code that generates the dashboard and prints a summary.
