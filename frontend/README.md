@@ -1,94 +1,71 @@
-# Tahlil Frontend - React + TypeScript
+# Tahlil Frontend
 
-This is the React frontend for Tahlil, built with Vite, TypeScript, and React.
+React + TypeScript frontend for the Tahlil AI data analysis platform.
 
-## Setup
+## 🚀 Quick Start
 
-### 1. Install Dependencies
+### Development Mode
 
 ```bash
 cd frontend
 npm install
-```
-
-### 2. Development Mode
-
-**Option A: Vite Dev Server (Recommended for frontend development)**
-```bash
 npm run dev
 ```
-- Runs on http://localhost:3000
-- Hot module replacement (HMR)
-- Proxies `/api` requests to Flask on port 5000
-- Make sure Flask is running separately: `python app.py`
 
-**Option B: Flask Serves React (For full-stack development)**
-1. Build React: `npm run build`
-2. Run Flask: `python app.py`
-3. Access at http://localhost:5000
+Opens at **http://localhost:3000** with hot reload.
 
-### 3. Production Build
+> Make sure Flask backend is running: `python app.py` (port 5000)
+
+### Production Build
 
 ```bash
 npm run build
 ```
 
-This creates a `dist/` folder that Flask will serve automatically.
+Flask automatically serves from `dist/` folder.
 
-## Project Structure
+## 📁 Structure
 
 ```
 frontend/
-├── components/          # React components
-│   ├── AuthScreen.tsx
-│   ├── FileManagerModal.tsx
-│   ├── InputArea.tsx
-│   ├── LandingPage.tsx
-│   ├── MessageBubble.tsx
-│   ├── ParticleBackground.tsx
-│   ├── SettingsModal.tsx
-│   └── Sidebar.tsx
-├── contexts/            # React contexts
-│   └── AuthContext.tsx
-├── services/            # API services
-│   ├── api.ts          # Flask API client
-│   └── geminiService.ts
-├── utils/              # Utility functions
-│   └── formatters.ts
-├── types.ts            # TypeScript types
-├── App.tsx             # Main app component
-├── index.tsx           # Entry point
-├── index.html          # HTML template
-└── vite.config.ts      # Vite configuration
+├── App.tsx                    # Main application
+├── components/
+│   ├── AuthScreen.tsx         # Login/signup
+│   ├── DashboardGallery.tsx   # Dashboard viewer (Superset ready)
+│   ├── DataSourceSelector.tsx # Google Sheets import
+│   ├── FileManagerModal.tsx   # File management
+│   ├── InputArea.tsx          # Chat input
+│   ├── LandingPage.tsx        # Welcome page
+│   ├── MessageBubble.tsx      # Chat messages
+│   ├── SettingsModal.tsx      # Settings
+│   └── Sidebar.tsx            # Navigation
+├── contexts/
+│   └── AuthContext.tsx        # User authentication
+├── services/
+│   └── api.ts                 # Backend API client
+└── types.ts                   # TypeScript definitions
 ```
 
-## API Integration
+## 🔌 API Endpoints
 
-The frontend communicates with Flask backend via `/api` endpoints:
-- `/api/data/upload` - File uploads
-- `/api/run/start` - Start analysis
-- `/api/run/{id}/status` - Get run status
-- `/api/run/{id}/results` - Get results
-- `/api/run/{id}/steps` - Get analysis steps
-- `/api/run/{id}/cancel` - Cancel run
-- `/api/feedback` - Submit feedback
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/data/upload` | POST | Upload files |
+| `/api/data/from-link` | POST | Import Google Sheets |
+| `/api/run/start` | POST | Start analysis |
+| `/api/run/{id}/status` | GET | Get run status |
+| `/api/run/{id}/steps` | GET | Get analysis steps |
+| `/api/run/{id}/results` | GET | Get final results |
+| `/api/run/{id}/cancel` | POST | Cancel run |
+| `/api/feedback` | POST | Submit feedback |
 
-See `services/api.ts` for all API methods.
+## 🎨 Theming
 
-## Development Tips
+Supports dark/light/system themes via CSS variables.
 
-- **Hot Reload**: Changes to React components auto-reload in browser
-- **TypeScript**: Type checking with `tsc --noEmit`
-- **API Proxy**: Vite proxies `/api/*` to Flask automatically
-- **Environment Variables**: Set in `.env` file (see vite.config.ts)
+## 📦 Tech Stack
 
-## Building for Production
-
-1. Build React app:
-   ```bash
-   npm run build
-   ```
-
-2. Flask will automatically serve from `frontend/dist/` if it exists
-
-3. For deployment, ensure `frontend/dist/` is included in your deployment package
+- **React 18** - UI framework
+- **TypeScript** - Type safety
+- **Vite** - Build tool
+- **Tailwind CSS** - Styling

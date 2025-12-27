@@ -1,238 +1,182 @@
-# Tahlil: A Data Science Agentic Framework
+# Tahlil: AI-Powered Data Analysis Platform
 
-Tahlil is based on a Python-based agentic framework for automating data science tasks. It leverages a multi-agent system to analyze data, devise a plan, write and execute code, and iteratively refine the solution to answer a user's query.
+Tahlil is a chat-based AI platform that helps non-technical users uncover insights from their data through natural language conversations. Simply upload your data (or connect Google Sheets), ask questions, and get humanized answers with visualizations.
 
-# Features
+## 🎯 What is Tahlil?
 
-- **Agentic Workflow**: Implements a pipeline of specialized AI agents (Analyzer, Planner, Coder, Verifier, Router, Debugger, Finalizer) that collaborate to solve data science problems.
-- **Reproducibility**: Every step of the pipeline is saved, including prompts, generated code, execution results, and metadata. This allows for complete auditability and reproducibility of results.
-- **Interactive & Resume-able**: Runs can be paused and resumed. The interactive mode allows for step-by-step execution.
-- **Code Editing & Debugging**: Allows users to manually edit the generated code during a run and features an auto-debug agent to fix execution errors.
-- **Configuration-driven**: Project settings, model parameters, and run configurations are managed through a `config.yaml` file.
-- **Web Interface**: Modern, user-friendly web application with drag-and-drop file upload, real-time progress tracking, and beautiful result visualization.
-- **User-Friendly Output**: AI-powered humanization of technical results, automatic table formatting, and intelligent graph/chart detection.
-- **Feedback System**: Built-in feedback mechanism to collect user insights and improve output quality.
-- **Multi-Format Support**: Handles CSV, Excel, JSON, TXT, Parquet files and outputs tables, charts, graphs, and natural language explanations.
-- **KPI Analysis**: Can calculate and analyze 200+ business KPIs including financial, operational, marketing, customer success, and project management metrics.
-- **SQL Code Generator** *(NEW)*: Convert any data source to executable SQL scripts with:
-  - Support for 5 SQL dialects (PostgreSQL, MySQL, SQLite, SQL Server, Oracle)
-  - Smart type inference from data
-  - 🚀 **Advanced Features**: Auto-detection of foreign keys, CHECK constraints, indexes, and validation rules
+**For Non-Technical Users:**
+- Upload your data files or paste a Google Sheets link
+- Ask questions in plain English
+- Get easy-to-understand insights with visualizations
+- No coding or technical knowledge required
 
-## 🧩 Integrated Analytics Tools
+**For Technical Users:**
+- View the generated Python code behind every analysis
+- Copy and customize the code for your own use
+- Full transparency into the AI's reasoning process
 
-Tahlil includes a comprehensive suite of integrated tools for specialized analysis:
+## ✨ Key Features
 
-### 🔬 Scientific & Statistical
-- **R Integration**: Execute R scripts and packages for advanced statistical modeling (Regression, Time Series).
-- **Julia Support**: High-performance computing for complex mathematical operations.
-- **SPSS/Stata Support**: Read and process `.sav` and `.dta` files natively.
-- **Statsmodels**: Robust statistical tests and models built-in.
+### 💬 Chat-Based Interface
+- Conversational AI that understands your questions
+- Real-time progress tracking
+- Step-by-step visibility into the analysis process
 
-### 🧠 AI & NLP
-- **Large Language Models**: Powered by Gemini, OpenAI, and Anthropic.
-- **LangChain**: Complex agent workflows and reasoning chains.
-- **spaCy & Hugging Face**: Advanced NLP for named entity recognition and sediment analysis.
+### 📊 Data Input
+- **File Upload**: CSV, Excel (.xlsx, .xls), JSON, Parquet
+- **Google Sheets**: Import directly via link
 
-### 🔌 Data Connections
-- **Google Sheets**: Direct integration to read/write spreadsheet data.
-- **SQL Databases**: Connect to PostgreSQL, MySQL, SQLite, and more.
+### 🤖 Multi-Agent AI System
+8 specialized agents work together:
+1. **Analyzer** - Understands your data structure
+2. **Planner** - Creates analysis strategy
+3. **Coder** - Writes Python code
+4. **Executor** - Runs the analysis
+5. **Debugger** - Fixes any errors
+6. **Verifier** - Validates results
+7. **Router** - Decides next steps
+8. **Finalizer** - Formats output for humans
 
-## How it Works
+### 📈 Output
+- **Humanized Text** - Plain language explanations
+- **Visualizations** - Charts and graphs (Superset integration coming)
+- **Code Visibility** - See all generated code
 
-The Tahlil pipeline is composed of several phases and agents:
+### 🔐 Security
+- Local file storage
+- API keys via environment variables
+- Full audit trail of all analyses
 
-1.  **Analysis**: The `Analyzer` agent inspects the initial data files and generates summaries.
-2.  **Iterative Planning & Execution**:
-    *   The `Planner` creates an initial plan to address the user's query.
-    *   The `Coder` generates Python code to execute the current step of the plan.
-    *   The code is executed, and the result is captured.
-    *   An automatic `Debugger` agent attempts to fix any code that fails.
-    *   The `Verifier` checks if the result sufficiently answers the query.
-    *   The `Router` decides what to do next: either finalize the plan or add a new step for refinement.
-    *   This loop continues until the plan is deemed sufficient or the maximum number of refinement rounds is reached.
-3.  **Finalization**: The `Finalizer` agent takes the final code and results and formats them into a clean, specified output format (e.g., JSON).
+## 🚀 Quick Start
 
-All artifacts for each run are stored in the `runs/` directory, organized by `run_id`.
-
-## Getting Started
-
-#### Using uv (Recommended)
-
-1.  **Clone the repository:**
-    ```bash
-    git clone <repository-url>
-    cd Tahlil
-    ```
-
-2.  **Install uv (if not already installed):**
-    ```bash
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    ```
-
-3.  **Install dependencies with uv:**
-    ```bash
-    uv sync
-    ```
-
-### Configuration
-
-1.  **Set your API Key:**
-    The application requires a Gemini API key. You can set it as an environment variable:
-    ```bash
-    export GEMINI_API_KEY='your-api-key'
-    ```
-    Alternatively, you can add it to the `config.yaml` file.
-
-2.  **Customize `config.yaml`:**
-    Create a `config.yaml` file in the root of the project and customize the settings. See the "Configuration" section below for details.
-
-    ```yaml
-    # config.yaml
-    model_name: 'gemini-1.5-flash'
-    max_refinement_rounds: 5
-    interactive: false
-    # api_key: 'your-api-key' # Alternatively, place it here
-    
-    # Optional: Configure specific models for different agents
-    agent_models:
-      PLANNER: 'gpt-4'
-      CODER: 'gemini-1.5-pro'
-      VERIFIER: 'gemini-1.5-flash'
-    ```
-
-## Usage
-
-### Web Interface (Recommended)
-
-The easiest way to use Tahlil is through the web interface:
-
-1. **Start the server:**
-   ```bash
-   python app.py
-   ```
-
-2. **Open your browser:**
-   ```
-   http://localhost:5000
-   ```
-
-3. **Upload files and ask questions:**
-   - Drag and drop your data files
-   - Type your question in natural language
-   - Click "Start Analysis"
-   - View results with beautiful formatting
-
-### Command Line Interface
-
-Place your data files (e.g., `.xlsx`, `.csv`) in the `data/` directory.
-
-**Starting a New Run:**
-
-To start a new analysis, you need to provide the data files and a query.
-
-Using uv:
-```bash
-uv run python tahlil.py --data-files file1.xlsx file2.xlsx --query "What is the total sales for each department?"
-```
-
-### Resuming a Run
-
-If a run was interrupted, you can resume it using its `run_id`.
+### 1. Install Dependencies
 
 ```bash
-uv run python tahlil.py --resume <run_id>
+# Using uv (recommended)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv sync
+
+# Or using pip
+pip install -r requirements.txt
 ```
 
-### Editing Code During a Run
-
-You can manually edit the last generated piece of code and re-run it. This is useful for manual debugging or tweaking the agent's logic.
+### 2. Set Your API Key
 
 ```bash
-uv run python tahlil.py --edit-last --resume <run_id>
+# Windows PowerShell
+$env:GEMINI_API_KEY = "your-api-key"
+
+# Linux/Mac
+export GEMINI_API_KEY="your-api-key"
 ```
-This will open the last code file in your default text editor (`nano`, `vim`, etc.). After you save and close the editor, the script will re-execute the modified code.
 
-### Interactive Mode
+Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
 
-To review each step before proceeding, use the interactive flag.
+### 3. Start the Server
 
 ```bash
-uv run python tahlil.py --interactive --data-files ... --query "..."
+python app.py
 ```
 
-## UV Package Manager
+### 4. Open the Web Interface
 
-This project uses `uv` for fast and reliable dependency management. Here are some useful commands:
+Navigate to: **http://localhost:5000**
 
-### Common UV Commands
+## 📁 Project Structure
 
-- **Install dependencies**: `uv sync`
-- **Add a new dependency**: `uv add package-name`
-- **Remove a dependency**: `uv remove package-name`
-- **Update dependencies**: `uv sync --upgrade`
-- **Run a command in the virtual environment**: `uv run python script.py`
-- **Show installed packages**: `uv pip list`
+```
+Tahlil/
+├── app.py                    # Flask backend API
+├── tahlil.py                 # Core multi-agent pipeline
+├── provider.py               # AI model providers
+├── storage.py                # File storage management
+├── file_validator.py         # File validation
+├── prompt.yaml               # Agent prompts
+├── config.yaml               # Configuration
+│
+├── tools/
+│   └── spreadsheet_connector.py  # Google Sheets import
+│
+├── frontend/
+│   ├── App.tsx               # Main React app
+│   ├── components/           # UI components
+│   └── services/api.ts       # API client
+│
+├── data/                     # Uploaded files
+└── runs/                     # Analysis results
+```
 
-### Benefits of UV
+## ⚙️ Configuration
 
-- **Speed**: uv is 10-100x faster than pip
-- **Reliability**: Consistent dependency resolution with lock files
-- **No virtual environment activation needed**: Use `uv run` to execute commands directly
-- **Better dependency resolution**: Automatically resolves complex dependency conflicts
+Edit `config.yaml`:
 
-## Configuration
+```yaml
+model_name: "gemini-2.0-flash"    # AI model to use
+max_refinement_rounds: 3          # Max analysis iterations
+auto_debug: false                 # Auto-fix code errors
+preserve_artifacts: true          # Save all analysis steps
+```
 
-The following options are available in `config.yaml` and can be overridden by CLI arguments:
+## 🤖 Supported AI Models
 
-- `run_id` (string): The ID of a run to resume.
-- `max_refinement_rounds` (int): The maximum number of times the agent will try to refine its plan.
-- `api_key` (string): Your Gemini API key.
-- `model_name` (string): The Gemini model to use (e.g., `gemini-1.5-flash`).
-- `interactive` (bool): If true, waits for user input before executing each step.
-- `auto_debug` (bool): If true, the `Debugger` agent will automatically try to fix failing code.
-- `execution_timeout` (int): Timeout in seconds for code execution.
-- `preserve_artifacts` (bool): If true, all step artifacts are saved to the `runs` directory.
-- `agent_models` (dict): A dictionary mapping agent names (e.g., `PLANNER`, `CODER`) to specific model names. If not specified, `model_name` is used.
-
-## Providers
-
-Tahlil supports multiple AI model providers. Each provider requires specific environment variables to be configured:
-
-### Google Gemini
-
-**Provider Identifier**: Default provider (no prefix required)
-
-**Environment Variable**:
+### Google Gemini (Default)
 ```bash
-export GEMINI_API_KEY='your-gemini-api-key'
+export GEMINI_API_KEY="your-key"
 ```
-
-**Model Examples**:`gemini-2.5-pro`, `gemini-2.0-flash`
+Models: `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro`
 
 ### OpenAI
-
-**Provider Identifier**: Models prefixed with `gpt` or `o1`
-
-**Environment Variable**:
 ```bash
-export OPENAI_API_KEY='your-openai-api-key'
+export OPENAI_API_KEY="your-key"
+```
+Models: `gpt-4`, `gpt-4-turbo`, `gpt-3.5-turbo`
+
+### Ollama (Local)
+```bash
+export OLLAMA_HOST="http://localhost:11434"
+```
+Models: `ollama/llama3`, `ollama/mistral`
+
+## 📊 Usage Examples
+
+### Example 1: Sales Analysis
+```
+📎 Upload: sales_data.csv
+💬 Question: "What are the top 5 products by revenue?"
+⏱️ Time: ~2-3 minutes
 ```
 
-**Model Examples**: `gpt-4`, `gpt-4-turbo`, `o1`
-
-### Ollama
-
-**Provider Identifier**: Models prefixed with `ollama/`
-
-**Environment Variables**:
-```bash
-export OLLAMA_API_KEY='your-ollama-api-key'  # Optional
-export OLLAMA_HOST='http://localhost:11434'  # Optional, defaults to http://localhost:11434
+### Example 2: Trend Analysis
+```
+🔗 Google Sheets: https://docs.google.com/spreadsheets/d/...
+💬 Question: "Show me the monthly growth trends"
+⏱️ Time: ~3-4 minutes
 ```
 
-**Model Examples**: `ollama/llama3`, `ollama/qwen3-coder`
+### Example 3: Customer Insights
+```
+📎 Upload: customers.xlsx
+💬 Question: "Group customers by purchase behavior"
+⏱️ Time: ~4-5 minutes
+```
 
-## Contributing
+## 🛠️ Command Line Usage
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue for any bugs or feature requests.
+```bash
+# Start new analysis
+uv run python tahlil.py --data-files data.csv --query "Analyze trends"
+
+# Resume interrupted analysis
+uv run python tahlil.py --resume <run_id>
+
+# Interactive mode (step-by-step)
+uv run python tahlil.py --interactive --data-files data.csv --query "..."
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a pull request or open an issue.
+
+## 📄 License
+
+MIT License
