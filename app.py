@@ -135,8 +135,10 @@ else:
 # Configuration
 DATA_DIR = Path("data")
 RUNS_DIR = Path("runs")
+TEMP_DIR = Path("temp")
 DATA_DIR.mkdir(exist_ok=True)
 RUNS_DIR.mkdir(exist_ok=True)
+TEMP_DIR.mkdir(exist_ok=True)
 
 # Import storage manager
 from storage import StorageManager
@@ -146,6 +148,8 @@ storage_manager = StorageManager(DATA_DIR)
 from file_validator import FileValidator
 from chart_generator import ChartGenerator, ChartConfig
 from kpi_calculator import KPICalculator
+from tools.sql_generator import SQLGenerator, dataframe_to_sql
+from tools.spreadsheet_connector import SpreadsheetConnector, fetch_spreadsheet
 
 # Add required imports for new services
 import pandas as pd
@@ -161,6 +165,15 @@ except ImportError:
 file_validator = FileValidator(DATA_DIR)
 chart_generator = ChartGenerator()
 kpi_calculator = KPICalculator()
+
+# Initialize spreadsheet connector (credentials path is optional)
+google_credentials_path = os.environ.get('GOOGLE_CREDENTIALS_PATH', 'config/google_credentials.json')
+if Path(google_credentials_path).exists():
+    spreadsheet_connector = SpreadsheetConnector(google_credentials_path)
+    logger.info("✅ SpreadsheetConnector initialized with Google credentials")
+else:
+    spreadsheet_connector = SpreadsheetConnector()
+    logger.info("ℹ️  SpreadsheetConnector initialized without credentials (public sheets only)")
 
 # In-memory store for run status
 run_status: Dict[str, Dict] = {}
@@ -277,8 +290,194 @@ def preview_data(file_id):
         return jsonify({'error': str(e), 'success': False}), 400
 
 # =============================================================================
+# DATA SOURCE INTEGRATION ENDPOINTS
+# =============================================================================
+
+@app.route('/api/data/from-link', methods=['POST'])
+def fetch_from_link():
+    """
+    Fetch data from external link (Google Sheets, Excel Online, etc.)
+    
+    Request body:
+    {
+        "url": "https://docs.google.com/spreadsheets/d/...",
+        "source_type": "spreadsheet",  # optional
+        "worksheet_name": "Sheet1",    # optional
+        "user_id": "default"           # optional
+    }
+    """
+    try:
+        data = request.json
+        url = data.get('url')
+        source_type = data.get('source_type', 'spreadsheet')
+        worksheet_name = data.get('worksheet_name')
+        user_id = data.get('user_id', 'default')
+        
+        if not url:
+            return jsonify({'error': 'URL is required', 'success': False}), 400
+        
+        # Fetch data from spreadsheet
+        result = spreadsheet_connector.fetch_from_url(url, worksheet_name)
+        
+        if not result.success:
+            return jsonify({
+                'success': False,
+                'error': result.error
+            }), 400
+        
+        # Convert DataFrame to CSV and store like a regular file
+        df = result.data
+        csv_content = df.to_csv(index=False).encode('utf-8')
+        
+        # Generate filename from metadata
+        sheet_id = result.metadata.get('sheet_id', 'sheet')[:12]
+        filename = f"gsheet_{sheet_id}.csv"
+        
+        # Store using existing storage manager
+        file_info = storage_manager.store_file(csv_content, filename, user_id)
+        
+        # Add metadata about the link source
+        file_info['source_url'] = url
+        file_info['source_type'] = source_type
+        file_info['fetched_at'] = datetime.now().isoformat()
+        
+        logger.info(f"Data fetched from link: {url} (rows: {result.metadata.get('rows', 0)})")
+        
+        return jsonify({
+            'success': True,
+            'file': {
+                'id': file_info['id'],
+                'name': file_info['original_filename'],
+                'size': file_info['file_size'],
+                'source_url': url,
+                'source_type': result.metadata.get('source_type', 'spreadsheet')
+            },
+            'preview': df.head(5).to_dict('records'),  # First 5 rows
+            'metadata': result.metadata
+        })
+        
+    except ValueError as e:
+        logger.warning(f"Link fetch validation failed: {e}")
+        return jsonify({'error': str(e), 'success': False}), 400
+    except Exception as e:
+        logger.error(f"Error fetching from link: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/data/sources', methods=['GET'])
+def list_data_sources():
+    """Get list of supported data source types."""
+    platforms = spreadsheet_connector.get_supported_platforms()
+    return jsonify({
+        'success': True,
+        'sources': platforms
+    })
+
+
+@app.route('/api/data/from-api', methods=['POST'])
+def fetch_from_api():
+    """
+    Fetch data from external REST API.
+    
+    Request body:
+    {
+        "url": "https://api.example.com/data",
+        "method": "GET",  # or "POST"
+        "auth_type": "none",  # or "api_key", "bearer", "basic"
+        "auth_config": {},  # Auth-specific config
+        "headers": {},  # Additional headers
+        "params": {},  # Query parameters
+        "body": {},  # Request body for POST
+        "json_path": "data.items",  # Path to data in response
+        "user_id": "default"
+    }
+    """
+    try:
+        from tools.api_connector import APIConnector
+        
+        data = request.json
+        url = data.get('url')
+        method = data.get('method', 'GET')
+        auth_type = data.get('auth_type', 'none')
+        auth_config = data.get('auth_config', {})
+        headers = data.get('headers', {})
+        params = data.get('params', {})
+        body = data.get('body')
+        json_path = data.get('json_path')
+        user_id = data.get('user_id', 'default')
+        
+        if not url:
+            return jsonify({'error': 'URL is required', 'success': False}), 400
+        
+        # Fetch data from API
+        connector = APIConnector()
+        result = connector.fetch_from_url(
+            url=url,
+            method=method,
+            auth_type=auth_type,
+            auth_config=auth_config,
+            headers=headers,
+            params=params,
+            body=body,
+            json_path=json_path
+        )
+        
+        if not result.success:
+            return jsonify({
+                'success': False,
+                'error': result.error
+            }), 400
+        
+        # Convert DataFrame to CSV and store
+        df = result.data
+        csv_content = df.to_csv(index=False).encode('utf-8')
+        
+        # Generate filename from URL
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        domain = parsed.netloc.replace('.', '_')[:20]
+        filename = f"api_{domain}.csv"
+        
+        # Store using existing storage manager
+        file_info = storage_manager.store_file(csv_content, filename, user_id)
+        
+        logger.info(f"Data fetched from API: {url} (rows: {result.metadata.get('rows', 0)})")
+        
+        return jsonify({
+            'success': True,
+            'file': {
+                'id': file_info['id'],
+                'name': file_info['original_filename'],
+                'size': file_info['file_size'],
+                'source_url': url,
+                'source_type': 'api'
+            },
+            'preview': df.head(5).to_dict('records'),
+            'metadata': result.metadata
+        })
+        
+    except ValueError as e:
+        logger.warning(f"API fetch validation failed: {e}")
+        return jsonify({'error': str(e), 'success': False}), 400
+    except Exception as e:
+        logger.error(f"Error fetching from API: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/data/auth-types', methods=['GET'])
+def get_auth_types():
+    """Get list of supported authentication types for APIs."""
+    from tools.api_connector import APIConnector
+    return jsonify({
+        'success': True,
+        'auth_types': APIConnector.get_supported_auth_types()
+    })
+
+
+# =============================================================================
 # QUERY & RUN ENDPOINTS
 # =============================================================================
+
 
 @app.route('/api/run/start', methods=['POST'])
 def start_run():
@@ -1422,6 +1621,119 @@ def serve_static(path):
                 'build_command': 'cd frontend && npm install && npm run build'
             }), 503
         return send_from_directory(str(FRONTEND_SOURCE), 'index.html')
+
+# =============================================================================
+# SQL EXPORT ENDPOINTS
+# =============================================================================
+
+@app.route('/api/data/export-sql/<int:file_id>', methods=['POST'])
+def export_to_sql(file_id):
+    """
+    Export data file to SQL script.
+    
+    Request body:
+    {
+        "dialect": "postgresql",  # or mysql, sqlite, sqlserver, oracle
+        "database_name": "my_database",
+        "table_name": "my_table",
+        "schema_name": "public",  # optional
+        "primary_key": "id",  # optional
+        "indexes": ["email", "created_at"],  # optional
+        "include_database": true,
+        "include_schema": false,
+        "batch_size": 100
+    }
+    """
+    try:
+        data = request.json or {}
+        user_id = data.get('user_id', 'default')
+        
+        # Get file
+        file_path = storage_manager.get_file_path(file_id, user_id)
+        if not file_path:
+            return jsonify({'error': 'File not found', 'success': False}), 404
+        
+        # Load data into DataFrame
+        file_ext = Path(file_path).suffix.lower()
+        if file_ext == '.csv':
+            df = pd.read_csv(file_path)
+        elif file_ext in ['.xlsx', '.xls']:
+            df = pd.read_excel(file_path)
+        elif file_ext == '.json':
+            df = pd.read_json(file_path)
+        elif file_ext == '.parquet':
+            df = pd.read_parquet(file_path)
+        else:
+            return jsonify({'error': 'Unsupported file type', 'success': False}), 400
+        
+        # Generate SQL
+        dialect = data.get('dialect', 'postgresql')
+        database_name = data.get('database_name', 'tahlil_db')
+        table_name = data.get('table_name', Path(file_path).stem)
+        
+        generator = SQLGenerator(dialect=dialect)
+        sql_script = generator.generate_full_script(
+            df=df,
+            database_name=database_name,
+            table_name=table_name,
+            schema_name=data.get('schema_name'),
+            primary_key=data.get('primary_key'),
+            indexes=data.get('indexes', []),
+            include_database=data.get('include_database', True),
+            include_schema=data.get('include_schema', False),
+            batch_size=data.get('batch_size', 100),
+            include_advanced_features=data.get('include_advanced_features', False)
+        )
+        
+        # Save SQL file
+        sql_filename = f"{table_name}_{dialect}.sql"
+        sql_filepath = TEMP_DIR / sql_filename
+        
+        with open(sql_filepath, 'w', encoding='utf-8') as f:
+            f.write(sql_script)
+        
+        logger.info(f"Generated SQL script: {sql_filename} ({len(sql_script)} bytes)")
+        
+        return jsonify({
+            'success': True,
+            'sql_script': sql_script,
+            'filename': sql_filename,
+            'download_url': f'/api/data/download-sql/{sql_filename}',
+            'stats': {
+                'rows': len(df),
+                'columns': len(df.columns),
+                'script_size': len(sql_script),
+                'dialect': dialect
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Error generating SQL: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+@app.route('/api/data/download-sql/<filename>', methods=['GET'])
+def download_sql_file(filename):
+    """Download generated SQL file."""
+    try:
+        filepath = TEMP_DIR / filename
+        if not filepath.exists():
+            return jsonify({'error': 'File not found', 'success': False}), 404
+        
+        return send_file(
+            filepath,
+            as_attachment=True,
+            download_name=filename,
+            mimetype='application/sql'
+        )
+    except Exception as e:
+        logger.error(f"Error downloading SQL file: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
+
+
+# =============================================================================
+# SERVER UTILITIES
+# =============================================================================
 
 def check_port_available(port: int) -> bool:
     """Check if a port is available."""

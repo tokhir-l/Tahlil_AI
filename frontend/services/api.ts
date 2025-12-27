@@ -203,6 +203,56 @@ export const api = {
   },
 
   /**
+   * Export file to SQL script
+   */
+  exportToSQL: async (fileId: number, config: {
+    dialect?: string;
+    database_name?: string;
+    table_name?: string;
+    schema_name?: string;
+    primary_key?: string;
+    indexes?: string[];
+    include_database?: boolean;
+    include_schema?: boolean;
+    include_advanced_features?: boolean;
+    batch_size?: number;
+  }): Promise<{
+    success: boolean;
+    sql_script?: string;
+    filename?: string;
+    download_url?: string;
+    stats?: {
+      rows: number;
+      columns: number;
+      script_size: number;
+      dialect: string;
+    };
+    error?: string;
+  }> => {
+    try {
+      const response = await fetch(`${API_BASE}/data/export-sql/${fileId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Export to SQL error:', error);
+      return { success: false, error: String(error) };
+    }
+  },
+
+  /**
+   * Download SQL file
+   */
+  downloadSQLFile: (filename: string) => {
+    const url = `${API_BASE}/data/download-sql/${encodeURIComponent(filename)}`;
+    window.location.href = url;
+  },
+
+  /**
    * Get list of generated dashboards
    */
   getDashboards: async (): Promise<import('../types').Dashboard[]> => {
@@ -213,6 +263,122 @@ export const api = {
     } catch (e) {
       console.error('Error fetching dashboards:', e);
       return [];
+    }
+  },
+
+  /**
+   * Fetch data from external link (Google Sheets, etc.)
+   */
+  fetchFromLink: async (url: string, options?: {
+    worksheet_name?: string;
+    user_id?: string;
+  }): Promise<{
+    success: boolean;
+    file?: {
+      id: number;
+      name: string;
+      size: number;
+      source_url: string;
+      source_type: string;
+    };
+    preview?: Record<string, any>[];
+    metadata?: Record<string, any>;
+    error?: string;
+  }> => {
+    try {
+      const response = await fetch(`${API_BASE}/data/from-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url,
+          ...options
+        }),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch from link error:', error);
+      return { success: false, error: String(error) };
+    }
+  },
+
+  /**
+   * Get list of supported data sources
+   */
+  getDataSources: async (): Promise<{
+    success: boolean;
+    sources?: Array<{
+      name: string;
+      id: string;
+      status: 'available' | 'coming_soon';
+      requires_auth: boolean;
+      icon: string;
+      description: string;
+    }>;
+  }> => {
+    try {
+      const response = await fetch(`${API_BASE}/data/sources`);
+      return await response.json();
+    } catch (error) {
+      console.error('Get data sources error:', error);
+      return { success: false };
+    }
+  },
+
+  /**
+   * Fetch data from external REST API
+   */
+  fetchFromApi: async (config: {
+    url: string;
+    method?: 'GET' | 'POST';
+    auth_type?: 'none' | 'api_key' | 'bearer' | 'basic';
+    auth_config?: Record<string, string>;
+    headers?: Record<string, string>;
+    params?: Record<string, string>;
+    body?: Record<string, any>;
+    json_path?: string;
+  }): Promise<{
+    success: boolean;
+    file?: {
+      id: number;
+      name: string;
+      size: number;
+      source_url: string;
+      source_type: string;
+    };
+    preview?: Record<string, any>[];
+    metadata?: Record<string, any>;
+    error?: string;
+  }> => {
+    try {
+      const response = await fetch(`${API_BASE}/data/from-api`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch from API error:', error);
+      return { success: false, error: String(error) };
+    }
+  },
+
+  /**
+   * Get supported authentication types for APIs
+   */
+  getAuthTypes: async (): Promise<{
+    success: boolean;
+    auth_types?: Array<{
+      id: string;
+      name: string;
+      description: string;
+    }>;
+  }> => {
+    try {
+      const response = await fetch(`${API_BASE}/data/auth-types`);
+      return await response.json();
+    } catch (error) {
+      console.error('Get auth types error:', error);
+      return { success: false };
     }
   }
 };

@@ -1,6 +1,6 @@
 # Tahlil: A Data Science Agentic Framework
 
-Tahlil is a Python-based agentic framework for automating data science tasks. It leverages a multi-agent system to analyze data, devise a plan, write and execute code, and iteratively refine the solution to answer a user's query.
+Tahlil is based on a Python-based agentic framework for automating data science tasks. It leverages a multi-agent system to analyze data, devise a plan, write and execute code, and iteratively refine the solution to answer a user's query.
 
 # Features
 
@@ -14,6 +14,29 @@ Tahlil is a Python-based agentic framework for automating data science tasks. It
 - **Feedback System**: Built-in feedback mechanism to collect user insights and improve output quality.
 - **Multi-Format Support**: Handles CSV, Excel, JSON, TXT, Parquet files and outputs tables, charts, graphs, and natural language explanations.
 - **KPI Analysis**: Can calculate and analyze 200+ business KPIs including financial, operational, marketing, customer success, and project management metrics.
+- **SQL Code Generator** *(NEW)*: Convert any data source to executable SQL scripts with:
+  - Support for 5 SQL dialects (PostgreSQL, MySQL, SQLite, SQL Server, Oracle)
+  - Smart type inference from data
+  - 🚀 **Advanced Features**: Auto-detection of foreign keys, CHECK constraints, indexes, and validation rules
+
+## 🧩 Integrated Analytics Tools
+
+Tahlil includes a comprehensive suite of integrated tools for specialized analysis:
+
+### 🔬 Scientific & Statistical
+- **R Integration**: Execute R scripts and packages for advanced statistical modeling (Regression, Time Series).
+- **Julia Support**: High-performance computing for complex mathematical operations.
+- **SPSS/Stata Support**: Read and process `.sav` and `.dta` files natively.
+- **Statsmodels**: Robust statistical tests and models built-in.
+
+### 🧠 AI & NLP
+- **Large Language Models**: Powered by Gemini, OpenAI, and Anthropic.
+- **LangChain**: Complex agent workflows and reasoning chains.
+- **spaCy & Hugging Face**: Advanced NLP for named entity recognition and sediment analysis.
+
+### 🔌 Data Connections
+- **Google Sheets**: Direct integration to read/write spreadsheet data.
+- **SQL Databases**: Connect to PostgreSQL, MySQL, SQLite, and more.
 
 ## How it Works
 
