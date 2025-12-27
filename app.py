@@ -1731,9 +1731,83 @@ def download_sql_file(filename):
         return jsonify({'error': str(e), 'success': False}), 500
 
 
+
+
 # =============================================================================
-# SERVER UTILITIES
+# CRM INTEGRATION ENDPOINTS (1C MVP)
 # =============================================================================
+
+from tools.crm_connector import OneCConnector
+
+@app.route('/api/data/crm/auth-types', methods=['GET'])
+def get_crm_auth_types():
+    """Get supported CRM platforms (1C Only for MVP)."""
+    return jsonify({
+        'success': True,
+        'platforms': [
+            {
+                'id': '1c',
+                'name': '1C:Enterprise (OData)',
+                'description': 'Import Catalogs and Documents via OData',
+                'fields': [
+                    {'key': 'base_url', 'label': 'OData Endpoint URL', 'type': 'url', 'placeholder': 'http://server/base/odata/standard.odata/'},
+                    {'key': 'username', 'label': 'Username', 'type': 'text', 'placeholder': 'Admin'},
+                    {'key': 'password', 'label': 'Password', 'type': 'password', 'placeholder': '******'},
+                    {'key': 'resource', 'label': 'Resource Name', 'type': 'text', 'placeholder': 'Catalog_Clients (or Catalog_Tovary)'}
+                ]
+            }
+        ]
+    })
+
+@app.route('/api/data/crm/fetch', methods=['POST'])
+def fetch_from_crm():
+    """Fetch data from 1C CRM."""
+    try:
+        data = request.json
+        platform = data.get('platform')
+        credentials = data.get('credentials', {})
+        # For 1C, 'entity' logic is handled via the 'resource' field in credentials for flexibility
+        resource = credentials.get('resource', 'Catalog_Clients') 
+        user_id = data.get('user_id', 'default')
+        limit = int(data.get('limit', 1000))
+        
+        if platform != '1c':
+             return jsonify({'error': 'Only 1C is supported in this version', 'success': False}), 400
+             
+        connector = OneCConnector(
+            base_url=credentials.get('base_url'),
+            username=credentials.get('username'),
+            password=credentials.get('password')
+        )
+        
+        # Authenticate
+        if not connector.authenticate():
+             return jsonify({'error': 'Authentication failed. Check URL and credentials.', 'success': False}), 401
+             
+        # Fetch data
+        df = connector.fetch_data(resource, limit=limit)
+             
+        if df.empty:
+             return jsonify({'error': 'No data found', 'success': False}), 404
+             
+        # Store file
+        csv_content = df.to_csv(index=False).encode('utf-8')
+        filename = f"1C_{resource}_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+        file_info = storage_manager.store_file(csv_content, filename, user_id)
+        
+        # Add metadata
+        file_info['source_type'] = 'crm_1c'
+        file_info['resource'] = resource
+        
+        return jsonify({
+            'success': True,
+            'file': file_info,
+            'preview': df.head().to_dict('records')
+        })
+        
+    except Exception as e:
+        logger.error(f"1C fetch error: {e}")
+        return jsonify({'error': str(e), 'success': False}), 500
 
 def check_port_available(port: int) -> bool:
     """Check if a port is available."""

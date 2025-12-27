@@ -362,9 +362,10 @@ export const api = {
     }
   },
 
+
   /**
-   * Get supported authentication types for APIs
-   */
+    * Get supported authentication types for APIs
+    */
   getAuthTypes: async (): Promise<{
     success: boolean;
     auth_types?: Array<{
@@ -379,6 +380,65 @@ export const api = {
     } catch (error) {
       console.error('Get auth types error:', error);
       return { success: false };
+    }
+  },
+
+  /**
+   * Get supported CRM Platforms and auth fields
+   */
+  getCrmAuthTypes: async (): Promise<{
+    success: boolean;
+    platforms?: Array<{
+      id: string;
+      name: string;
+      description: string;
+      fields: Array<{
+        key: string;
+        label: string;
+        type: string;
+        placeholder: string;
+      }>;
+    }>;
+  }> => {
+    try {
+      const response = await fetch(`${API_BASE}/data/crm/auth-types`);
+      return await response.json();
+    } catch (error) {
+      console.error('Get CRM auth types error:', error);
+      return { success: false };
+    }
+  },
+
+  /**
+   * Fetch data from CRM
+   */
+  fetchFromCrm: async (config: {
+    platform: string;
+    credentials: Record<string, string>;
+    entity: string;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    file?: {
+      id: number;
+      name: string;
+      size: number;
+      source_type: string;
+    };
+    preview?: Record<string, any>[];
+    metadata?: Record<string, any>;
+    error?: string;
+  }> => {
+    try {
+      const response = await fetch(`${API_BASE}/data/crm/fetch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(config),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Fetch from CRM error:', error);
+      return { success: false, error: String(error) };
     }
   }
 };

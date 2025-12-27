@@ -8,7 +8,7 @@ interface DataSourceSelectorProps {
     onClose?: () => void;
 }
 
-type ActiveSource = 'sheets' | 'api' | null;
+type ActiveSource = 'sheets' | 'api' | 'crm' | null;
 
 const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({ onFileImported, onClose }) => {
     const [activeSource, setActiveSource] = useState<ActiveSource>('sheets');
@@ -25,6 +25,21 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({ onFileImported,
     const [jsonPath, setJsonPath] = useState('');
     const [apiLoading, setApiLoading] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(false);
+
+    // CRM state
+    const [crmPlatforms, setCrmPlatforms] = useState<any[]>([]);
+    const [activePlatform, setActivePlatform] = useState<string | null>(null);
+    const [crmCredentials, setCrmCredentials] = useState<Record<string, string>>({});
+    const [crmEntity, setCrmEntity] = useState('leads');
+    const [crmLoading, setCrmLoading] = useState(false);
+
+    useEffect(() => {
+        api.getCrmAuthTypes().then(res => {
+            if (res.success && res.platforms) {
+                setCrmPlatforms(res.platforms);
+            }
+        });
+    }, []);
 
     // Shared state
     const [success, setSuccess] = useState<string | null>(null);
@@ -97,12 +112,36 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({ onFileImported,
         }
     };
 
+    // CRM import
+    const handleFetchCrm = async () => {
+        if (!activePlatform) return;
+        setCrmLoading(true);
+        clearMessages();
+        try {
+            const result = await api.fetchFromCrm({
+                platform: activePlatform,
+                credentials: crmCredentials,
+                entity: crmEntity,
+            });
+            if (result.success && result.file) {
+                setSuccess(`✅ Imported ${result.metadata?.rows || 0} ${crmEntity} from ${activePlatform}`);
+                onFileImported?.({ id: result.file.id, name: result.file.name, source: 'crm' });
+            } else {
+                setError(result.error || 'Failed to fetch from CRM');
+            }
+        } catch (err) {
+            setError('CRM connection failed');
+        } finally {
+            setCrmLoading(false);
+        }
+    };
+
     // Source cards data
     const sources = [
         { id: 'sheets' as const, title: 'Google Sheets', desc: 'Import from public sheets', icon: FileSpreadsheet, color: '#22c55e', available: true },
         { id: 'api' as const, title: 'REST API', desc: 'Connect to any endpoint', icon: Globe, color: '#3b82f6', available: true },
         { id: 'database' as const, title: 'Database', desc: 'SQL & NoSQL', icon: Database, color: '#8b5cf6', available: false },
-        { id: 'crm' as const, title: 'CRM', desc: 'Salesforce, HubSpot', icon: Users, color: '#f97316', available: false },
+        { id: 'crm' as const, title: 'CRM', desc: 'Salesforce, HubSpot', icon: Users, color: '#f97316', available: true },
     ];
 
     const inputStyle: React.CSSProperties = {
@@ -236,6 +275,7 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({ onFileImported,
                 </div>
             )}
 
+
             {/* API Form */}
             {activeSource === 'api' && (
                 <div style={{
@@ -355,6 +395,49 @@ const DataSourceSelector: React.FC<DataSourceSelectorProps> = ({ onFileImported,
                         style={{ ...buttonStyle(apiLoading, !apiUrl.trim()), width: '100%' }}
                     >
                         {apiLoading ? <Loader2 size={16} className="animate-spin" /> : <><ExternalLink size={14} /> Fetch Data</>}
+                    </button>
+                </div>
+            )}
+
+            {/* CRM Form */}
+            {activeSource === 'crm' && (
+                <div style={{
+                    background: 'rgba(249, 115, 22, 0.05)', border: '1px solid rgba(249, 115, 22, 0.15)',
+                    borderRadius: '12px', padding: '14px'
+                }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: 500, color: '#9ca3af', marginBottom: '10px' }}>
+                        <Users size={14} />
+                        Connect to 1C:Enterprise
+                    </label>
+
+                    <p style={{ fontSize: '11px', color: '#6b7280', marginBottom: '15px' }}>
+                        Import data from 1C via OData interface.
+                    </p>
+
+                    {/* Dynamic Auth Fields (Hardcoded for single platform MVP look, but using dynamic config) */}
+                    <div style={{ marginBottom: '15px' }}>
+                        {crmPlatforms.length > 0 && crmPlatforms[0]?.fields.map(field => (
+                            <div key={field.key} style={{ marginBottom: '8px' }}>
+                                <label style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '4px', display: 'block' }}>{field.label}</label>
+                                <input
+                                    type={field.type}
+                                    placeholder={field.placeholder}
+                                    value={crmCredentials[field.key] || ''}
+                                    onChange={(e) => setCrmCredentials({ ...crmCredentials, [field.key]: e.target.value })}
+                                    style={inputStyle}
+                                />
+                            </div>
+                        ))}
+                        {crmPlatforms.length === 0 && <div style={{ fontSize: '11px', color: '#9ca3af' }}>Loading configuration...</div>}
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                        onClick={handleFetchCrm}
+                        disabled={crmLoading || crmPlatforms.length === 0}
+                        style={{ ...buttonStyle(crmLoading, false), width: '100%', background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
+                    >
+                        {crmLoading ? <Loader2 size={16} className="animate-spin" /> : <><ExternalLink size={14} /> Import from 1C</>}
                     </button>
                 </div>
             )}
